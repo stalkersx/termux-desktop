@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# check shell
+if ! [ -d /usr/bin ];then
+  echo "[!] please running in linux shell"; exit
+fi
+
+# check_install
+if ! [ -f /usr/bin/$0 ];then
+  cp $0 /usr/bin
+fi
+
+# create user sudo
+newuser(){
+  read -p "nama user baru : " nme
+  adduser $nme
+  echo "$nme     ALL=(ALL:ALL) ALL" >> /etc/sudoers
+}
+
+# data
+package=("sudo" "xfce4*" "tightvncserver" "pulseaudio")
+binary=("sudo" "xfce4-session" "vncserver" "pulseaudio")
+
+# check data
+for pb in ${!binary[@]};do
+  if ! [ -f /usr/bin/${binary[pb]} ];then
+    echo "apt install ${package[pb]} -y"
+    if [[ ${binary[pb]} == "sudo" ]];then newuser; fi
+  fi
+done
+
+# check etc
+if ! [ -d /etc/xrdp ];then
+  echo "apt install xrdp -y"
+elif ! [ -d /etc/X11 ];then
+  echo "apt install dbus-x11 -y"
+fi
+
+# start vnc
+# check desktop already running
+for c_dbus in $(ls /tmp);do
+  get_char_dbus=${c_dbus:0:4}
+  if [[ $get_char_dbus == "dbus" ]];then
+    #echo "[!] desktop termux already running ..."
+    exit
+  fi
+done
+
+# delete cache from vnc
+if [ -f /tmp ];then rm -rf /tmp/.*; fi
+
+# get audio streaming
+export PULSE_SERVER=127.0.0.1 && pulseaudio --start --disable-shm=1 --exit-idle-time=-1
+
+# check parameter
+if [ $1 ];then
+  x3=${1:3:1}; x4=${1:4:1}
+  if [[ $x3 == "x" ]] || [[ $x4 == "x" ]];then
+    vncserver -geometry $1 -xstartup /usr/bin/xfce4-session
+  else
+    echo "[!] try <desktop-linux heigtxwidth > for phone size"
+  fi
+else
+  vncserver -xstartup /usr/bin/xfce4-session
+fi

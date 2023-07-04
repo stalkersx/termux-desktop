@@ -1,0 +1,189 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+# check repo
+if ! [ -f /data/data/com.termux/files/usr/etc/apt/sources.list.d/x11.list ];then
+  apt install x11-repo -y
+fi
+
+# package
+pkg_name=("xfce4*" "xrdp" "tigervnc" "pulseaudio*" "pavucontrol-qt")
+pkg_command=("xfce4-session" "xrdp" "vncserver" "pulseaudio" "pavucontrol-qt")
+
+# check install package
+c_install(){
+  # check index array pkg_command
+  # true = 5 number
+  #echo "index : ${!pkg_command[@]}"
+
+  # get all item array pkg_command
+  for idx in ${!pkg_command[@]};do
+    # check all item pkg_command
+    #echo "check package_command"; echo "- ${pkg_command[idx]}"
+    # check all item pkg_name
+    #echo "check package_name"; echo "- ${pkg_name[idx]}"
+    # check path to command
+    #echo -e "path : $PREFIX/bin/${pkg_command[idx]}\n"
+
+    # if file command not found running this
+    if ! [ -f $PREFIX/bin/${pkg_command[idx]} ];then
+      # check command install pkg_name
+      #echo -e "apt install ${pkg_name[idx]} -y\n"
+      apt install ${pkg_name[idx]} -y
+    fi
+  done
+}
+
+# check command in file profile
+c_fprofile(){
+  # path
+  path_profile="$PREFIX/etc/profile"
+  path_parameter="$PREFIX/bin"
+
+  # check path file profile
+  if ! [ -f $path_profile ];then
+    echo "[!] file <$path_profile> not found"; exit
+  fi
+
+  # read file profile
+  read_profile=( $(cat $path_profile) )
+
+  # get all read
+  for get_text in ${read_profile[@]};do
+    # check all read
+    #echo "- $get_text"
+
+    # check parameter $1
+    if [[ $get_text == $1 ]];then
+       get_parameter=$get_text
+    fi
+  done
+
+  # command $1 nothing in file profile then running enable
+  if [[ $1 != $get_parameter ]] && [[ $2 -eq 1 ]];then
+    # check path file parameter
+    if ! [ -f $1 ];then
+      echo "[!] file <$1> not found"; exit
+    fi
+    # backup file profile
+    cd $PREFIX/etc; cp profile profile_old
+
+    # add command to file profile
+    echo "$1" >> profile
+    echo "[!] set enable complete ..."
+  # check command $1 enable in file profile
+  elif [[ $1 != $get_parameter ]] && [[ $2 -eq 2 ]];then
+    echo "[!] set not enable ..."
+  # check command $1 disable in file profile
+  elif [[ $1 != $get_parameter ]] && [[ $2 -eq 3 ]];then
+    echo "[!] set already disable  ..."
+  else
+    # command already in file profile then running disable
+    if [[ $2 -eq 3 ]];then cd $PREFIX/etc
+      if [ -f profile ];then rm profile; fi
+      cp profile_old profile
+      echo "[!] set disable complete ..."; exit
+    fi
+    echo "[!] set already enable ..."
+  fi
+}
+
+# start desktop termux
+run_desktop(){
+  if [ $1 ];then
+    #echo "true"
+    vncserver -geometry $1 -xstartup $PREFIX/bin/xfce4-session; pulseaudio --start --exit-idle-time=-1
+  else
+    #echo "false"
+    vncserver -xstartup $PREFIX/bin/xfce4-session; pulseaudio --start --exit-idle-time=-1
+  fi
+  clear
+}
+
+# help
+run_help(){
+  echo "termux-desktop [option] [command]"
+  echo "Options :"
+  echo -e "-s\t\t: set prosess"
+  echo -e "-c\t\t: check proses\n"
+  echo "Command :"
+  echo -e "run_always\t: proses otomatis mulai desktop"
+  echo -e "layer\t\t: ukuran layar hp"
+  echo -e "desktop\t\t: proses vnc sedang berjalan\n"
+}
+
+# start scripts
+# check process
+if [[ $1 == "-c" ]];then
+  # check desktop running
+  if [[ $2 == "desktop" ]] && [ -z $3 ];then
+    vncserver -list
+  # check size layer
+  elif [[ $2 == "layer" ]] && [ -z $3 ];then
+    if ! [ -f $PREFIX/etc/vnc.layer ];then
+      echo "[!] file <$PREFIX/etc/vnc.layer> not found"; exit
+    fi
+    cat $PREFIX/etc/vnc.layer
+  # check otomatis running
+  elif [[ $2 == "run_always" ]] && [ -z $3 ];then
+    c_fprofile $0 2
+  else
+    run_help
+  fi
+# set process
+elif [[ $1 == "-s" ]];then
+  # set otomatis running
+  if [[ $2 == "run_always" ]] && [ $3 ] && [ -z $4 ];then
+    if [[ $3 == "enable" ]];then
+      c_fprofile $0 1
+    elif [[ $3 == "disable" ]];then
+      c_fprofile $0 3
+    else
+      echo "[!] command <$3> unknown"
+      echo "[?] command just <enable> and <disable>"
+    fi
+  # set size layer
+  elif [[ $2 == "layer" ]] && [ $3 ] && [ -z $4 ];then
+    c_char3=${3:3:1}; c_char4=${3:4:1}
+    #echo $c_char3 $c_char4
+    if [[ $c_char3 == "x" ]] || [[ $c_char4 == "x" ]];then
+      if [ -f $PREFIX/etc/vnc.layer ];then
+        cd $PREFIX/etc; rm vnc.layer
+      else
+        touch $PREFIX/etc/vnc.layer
+      fi
+      echo $3 >> $PREFIX/etc/vnc.layer
+      echo "[!] set layer $3 complete ..."
+    else
+      echo "[!] command <$3> unknown"
+      echo "[?] example : 1200x720"
+    fi
+  else
+    run_help
+  fi
+elif [[ $1 == "-h" ]] || [[ $1 == "--help" ]] && [ -z $2 ];then
+  run_help
+else
+  # check desktop already running
+  for c_dbus in $(ls $PREFIX/tmp);do
+    #echo $c_dbus
+    get_char_dbus=${c_dbus:0:4}
+    #echo $get_char_dbus
+    if [[ $get_char_dbus == "dbus" ]];then
+      #echo "[!] desktop termux already running ..."
+      exit
+    fi
+  done
+
+  # run check file vnc.layer
+  if [ -f $PREFIX/etc/vnc.layer ];then
+    u_layer="$(cat $PREFIX/etc/vnc.layer)"
+    run_desktop $u_layer
+  else
+    run_desktop
+  fi
+fi
+
+# try method
+#c_install
+#c_fprofile "termux-desktop"
+#run_help
