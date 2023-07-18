@@ -163,6 +163,9 @@ elif [[ $1 == "-s" ]];then
 elif [[ $1 == "-h" ]] || [[ $1 == "--help" ]] && [ -z $2 ];then
   run_help
 else
+  # check installed
+  c_install
+
   # check desktop already running
   for c_dbus in $(ls $PREFIX/tmp);do
     #echo $c_dbus
