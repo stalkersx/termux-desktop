@@ -6,3 +6,7 @@ netsurf
 geany
 peh
 ristretto
+glade
+synaptic
+tigervnc-viewer
+godot
