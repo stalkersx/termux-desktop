@@ -96,6 +96,10 @@ run_desktop(){
     #echo "false"
     vncserver -xstartup $PREFIX/bin/xfce4-session; pulseaudio --start --exit-idle-time=-1
   fi
+  # intent to vnc viewer android
+  if [ -d /data/user/0/com.realvnc.viewer.android ];then
+    am start --user 0 -n com.realvnc.viewer.android/com.realvnc.viewer.android.app.ConnectionChooserActivity
+  fi
   clear
 }
 

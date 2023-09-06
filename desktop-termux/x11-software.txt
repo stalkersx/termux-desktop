@@ -10,3 +10,4 @@ glade
 synaptic
 tigervnc-viewer
 godot
+blender
