@@ -1,13 +1,51 @@
-file-roller
-parole
-firefox
-otter-browser
-netsurf
-geany
-peh
-ristretto
-glade
-synaptic
-tigervnc-viewer
-godot
-blender
+FILE :
+- abiword
+  |__ text editor word (penganti ms word)
+
+- synaptic
+  |__ paket manager ui
+
+- glade
+  |__ create layout gtk3+
+
+- geany
+  |__ text editor file
+
+- file-roller
+  |__ extrak file
+
+- texstudio
+  texworks
+  |__ editor documents latex
+
+VIDEO DAN SOUND :
+- parole
+  |__ pemutar video
+
+- audacious
+- olivia
+  |__ pemutar musik
+
+BROWSER :
+- netsurf
+- firefox
+- otter-browser
+- chromium
+  |__ browsing internet searching
+
+
+IMAGE :
+- peh
+- ristretto
+  |__ penampil gambar
+
+- gimp
+- inkscape
+  |__ editor gambar
+
+OTHER :
+- tigervnc-viewer
+  |__ remote vnc viewer
+
+- godot
+  |__ pengembang game

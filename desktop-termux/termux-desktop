@@ -1,12 +1,14 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # check shell
-if ! [ -f /data/data/com.termux/files/usr/bin/bash ];then
+if [ -d /data/data/com.termux/files/usr ];then
+	fs="/data/data/com.termux/files/usr"
+else
 	echo "! unknown termux shell"; exit
 fi
 
 # check repo
-if ! [ -f /data/data/com.termux/files/usr/etc/apt/sources.list.d/x11.list ];then
+if ! [ -f $fs/etc/apt/sources.list.d/x11.list ];then
   apt install x11-repo -y
 fi
 
@@ -27,10 +29,10 @@ c_install(){
     # check all item pkg_name
     #echo "check package_name"; echo "- ${pkg_name[idx]}"
     # check path to command
-    #echo -e "path : $PREFIX/bin/${pkg_command[idx]}\n"
+    #echo -e "path : $fs/bin/${pkg_command[idx]}\n"
 
     # if file command not found running this
-    if ! [ -f $PREFIX/bin/${pkg_command[idx]} ];then
+    if ! [ -f $fs/bin/${pkg_command[idx]} ];then
       # check command install pkg_name
       #echo -e "apt install ${pkg_name[idx]} -y\n"
       apt install ${pkg_name[idx]} -y
@@ -41,8 +43,8 @@ c_install(){
 # check command in file profile
 c_fprofile(){
   # path
-  path_profile="$PREFIX/etc/profile"
-  path_parameter="$PREFIX/bin"
+  path_profile="$fs/etc/profile"
+  path_parameter="$fs/bin"
 
   # check path file profile
   if ! [ -f $path_profile ];then
@@ -70,7 +72,7 @@ c_fprofile(){
       echo "[!] file <$1> not found"; exit
     fi
     # backup file profile
-    cd $PREFIX/etc; cp profile profile_old
+    cd $fs/etc; cp profile profile_old
 
     # add command to file profile
     echo "$1" >> profile
@@ -83,7 +85,7 @@ c_fprofile(){
     echo "[!] set already disable  ..."
   else
     # command already in file profile then running disable
-    if [[ $2 -eq 3 ]];then cd $PREFIX/etc
+    if [[ $2 -eq 3 ]];then cd $fs/etc
       if [ -f profile ];then rm profile; fi
       cp profile_old profile
       echo "[!] set disable complete ..."; exit
@@ -96,29 +98,29 @@ c_fprofile(){
 run_desktop(){
   if [ $1 ];then
     #echo "true"
-    vncserver -geometry $1 -xstartup $PREFIX/bin/xfce4-session; pulseaudio --start --exit-idle-time=-1
+    vncserver -geometry $1 -xstartup $fs/bin/xfce4-session; pulseaudio --start --exit-idle-time=-1
   else
     #echo "false"
-    vncserver -xstartup $PREFIX/bin/xfce4-session; pulseaudio --start --exit-idle-time=-1
+    vncserver -xstartup $fs/bin/xfce4-session; pulseaudio --start --exit-idle-time=-1
   fi
-  
+
   # intent to vnc viewer android
-  if [ -f $PREFIX/etc/vnc.app.activity ];then
-    activity=$(cat $PREFIX/etc/vnc.app.activity)
+  if [ -f $fs/etc/vnc.app.activity ];then
+    activity=$(cat $fs/etc/vnc.app.activity)
     am start --user 0 -n $activity
   fi
-  clear
+#  clear
 }
 
 # help
 run_help(){
-  echo "termux-desktop [option] [command]"
+  echo "termux-desktop [options] [flags]"
   echo "Options :"
   echo -e "-k\t\t: kill proses"
   echo -e "-s\t\t: set proses"
   echo -e "-c\t\t: check proses\n"
-  echo "Command :"
-  echo -e "activity\t: open activity app vnc viewer"
+  echo "Flags :"
+  echo -e "activity\t: buka activity app vnc viewer"
   echo -e "run_always\t: proses otomatis mulai desktop"
   echo -e "layer\t\t: ukuran layar hp"
   echo -e "desktop\t\t: proses vnc sedang berjalan\n"
@@ -132,17 +134,17 @@ if [[ $1 == "-c" ]];then
     vncserver -list
   # check size layer
   elif [[ $2 == "layer" ]] && [ -z $3 ];then
-    if [ -f $PREFIX/etc/vnc.layer ];then
-      cat $PREFIX/etc/vnc.layer
+    if [ -f $fs/etc/vnc.layer ];then
+      cat $fs/etc/vnc.layer
     else
-      echo "[!] file <$PREFIX/etc/vnc.layer> not found"; exit
+      echo "[!] file <$fs/etc/vnc.layer> not found"; exit
     fi
   elif [[ $2 == "activity" ]] && [ -z $3 ];then
     # check activity
-    if [ -f $PREFIX/etc/vnc.app.activity ];then
-      cat $PREFIX/etc/vnc.app.activity
+    if [ -f $fs/etc/vnc.app.activity ];then
+      cat $fs/etc/vnc.app.activity
     else
-      echo "[!] file <$PREFIX/etc/vnc.app.activity> not found"; exit
+      echo "[!] file <$fs/etc/vnc.app.activity> not found"; exit
     fi
   # check otomatis running
   elif [[ $2 == "run_always" ]] && [ -z $3 ];then
@@ -167,12 +169,12 @@ elif [[ $1 == "-s" ]];then
     c_char3=${3:3:1}; c_char4=${3:4:1}
     #echo $c_char3 $c_char4
     if [[ $c_char3 == "x" ]] || [[ $c_char4 == "x" ]];then
-      if [ -f $PREFIX/etc/vnc.layer ];then
-        cd $PREFIX/etc; rm vnc.layer
+      if [ -f $fs/etc/vnc.layer ];then
+        cd $fs/etc; rm vnc.layer
       else
-        touch $PREFIX/etc/vnc.layer
+        touch $fs/etc/vnc.layer
       fi
-      echo $3 >> $PREFIX/etc/vnc.layer
+      echo $3 >> $fs/etc/vnc.layer
       echo "[!] set layer $3 complete ..."
     else
       echo "[!] command <$3> unknown"
@@ -180,28 +182,38 @@ elif [[ $1 == "-s" ]];then
     fi
   elif [[ $2 == "activity" ]] && [ $3 ] && [ -z $4 ];then
     # set activity
-    if [ -f $PREFIX/etc/vnc.app.activity ];then
-      cd $PREFIX/etc; rm vnc.app.activity
+    if [ -f $fs/etc/vnc.app.activity ];then
+      cd $fs/etc; rm vnc.app.activity
     else
-	  touch $PREFIX/etc/vnc.app.activity
-	  echo $3 >> $PREFIX/etc/vnc.app.activity
+	  touch $fs/etc/vnc.app.activity
+	  echo $3 >> $fs/etc/vnc.app.activity
 	  echo "[!] set app vnc activity success"
     fi
   else
     run_help
   fi
-elif [[ $1 == "-k" ]] || [[ $1 == "-kill" ]] && [ -z $2 ];then
-  cd /data/data/com.termux/files/usr
-  # kill desktop
-  for p in {1..10};do
+elif [[ $1 == "-k" ]];then
+  if [[ $2 == "activity" ]] && [ -z $3 ] && [ -f $fs/etc/vnc.app.activity ];then
+	rm $fs/etc/vnc.app.activity
+	echo "[!] succes kill activity"
+  elif [[ $2 == "layer" ]] && [ -z $3 ] && [ -f $fs/etc/vnc.layer ];then
+	rm $fs/etc/vnc.layer
+	echo "[!] succes kill size layer"
+  elif [[ $2 == "desktop" ]] && [ -z $3 ];then
+    cd $fs
+    # kill desktop
+    for p in {0..10};do
 	if [ -f tmp/.X$p-lock ];then
 		vncserver -kill :$p
 	fi
-  done
-  # clear cache vnc
-  if [ -d tmp ];then
+    done
+    # clear cache vnc
+    if [ -d tmp ];then
   	rm -rf tmp/*
   	rm -rf tmp/.*
+    fi
+  else
+	run_help
   fi
 elif [[ $1 == "-h" ]] || [[ $1 == "--help" ]] && [ -z $2 ];then
   run_help
@@ -210,18 +222,20 @@ else
   c_install
 
   # check run desktop
-  if [ -f /data/data/com.termux/files/usr/tmp/.X1-lock ];then
+  for n in {0..10};do
+    if [ -f $fs/tmp/.X$n-lock ];then
 	exit
-  fi
-  
+    fi
+  done
+
   # run check file vnc.layer
-  if [ -f $PREFIX/etc/vnc.layer ];then
-    u_layer="$(cat $PREFIX/etc/vnc.layer)"
+  if [ -f $fs/etc/vnc.layer ];then
+    u_layer="$(cat $fs/etc/vnc.layer)"
     run_desktop $u_layer
   else
     run_desktop
   fi
-  
+
 fi
 
 # try method
